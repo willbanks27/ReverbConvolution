@@ -1,13 +1,9 @@
-
-
-
-%%% goal: to have the length of 'in' equal the length of 'verb'
-
-%%% below is code that padds the input signal to have the same index length
+%%% simulated reverb via convolution 
+%%% will banks, ECE Undergraduate @UKY
 
 %%% define inputs
 
-[in, fs] = audioread('ghosts.wav'); % input signal defined
+[in, fs] = audioread('coffee.wav'); % input signal defined
     in = in(:,1); % converts signal to mono, if needed
 
 [verb, ~] = audioread('warehouse.wav'); % reverb response signal defined
@@ -34,7 +30,7 @@
 
 %%% convolution of the input (in_padded) and response (verb)
 
-%%% defining sampling stuff
+%%% define sampling stuff
 
     nfft = length(in);                  % nfft points equal to length of input
     window = fs/105;                    % window length value defined
@@ -42,31 +38,66 @@
     wTape = hamming(window);            % ham that window
     olap = floor(window/2);             % overlap proportional to half of window length
 
-%%% Z transforms, XzT-> input, HzT->response, YzT->output
+%%% Z transforms, XzT-> input, HzT->response, YzT->out
 
     XzT = fft(in_padded, nfft);
     HzT = fft(verb, nfft);
     
     YzT = XzT.*HzT;
 
-%%% inverse Z transforms, x-> input, h->response, y->output
+%%% inverse Z transforms, x-> input, h->response, y->out
 
     y = ifft(YzT, nfft);
 
-%%% mixer    
+    out = (1/20).*y; % output amplitude is decreased
+
+%%% mixer, if needed    
 
     A = .05;
     B = 1;
-    mix = A.*y + B.*in;
+    mix = A.*out + B.*in;
 
-soundsc(mix,fs)
+%soundsc(mix,fs)
 
+%%% plots
 
+    % define time axis
 
+        tAxis_in = (0:length(in)-1)/fs;
+        tAxis_verb = (0:length(verb)-1)/fs;
+        tAxis_out = (0:length(out)-1)/fs;
+    
+    % define x limits
+    
+        xlim_in = [0, length(in)/fs];
+        xlim_verb = [0, length(verb)/fs];
+        xlim_out = [0, length(out)/fs];
+    
+        
+        
+% plot signals on one figure
 
-
-
-
+figure(1)
+tiledlayout(2,1);
+    
+    nexttile % plot x[n] and h[n] characteristics
+        
+        plot(tAxis_in, in)
+        hold on
+        plot(tAxis_verb, verb);
+        title('Input vs. Response')
+        xlabel('Seconds')
+        ylabel('Amplitude')
+        xlim(xlim_verb)
+        
+    nexttile % plot convoluted output characteristics
+    
+        plot(tAxis_out, out);
+        
+        title('Output Signal')
+        xlabel('Seconds')
+        ylabel('Amplitude')
+        xlim(xlim_out)
 
 
 
